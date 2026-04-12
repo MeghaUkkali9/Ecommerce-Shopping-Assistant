@@ -1,10 +1,8 @@
 import importlib.metadata
 packages = [
-    "ragas",
-    "langchain-mcp-adapters",
-    "mcp",
-    "ddgs",
     "langchain-openai"
+    "streamlit"
+    "langchain"
     ]
 for pkg in packages:
     try:

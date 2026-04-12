@@ -151,3 +151,10 @@ To run scapper, streamlit is required
 ```bash
 streamlit run scrapper_ui.py
 ```
+
+add fastapi:
+```
+uv add fastapi
+or 
+uv add -r requirememts.txt
+```
