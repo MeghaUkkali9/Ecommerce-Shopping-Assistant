@@ -1,7 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "ecommerce-shopping-assistant"
+name = "ecommerce_shopping_assistant"
 version = "0.1.0"
-description = "Add your description here"
+description = "Ecommerce chatbot with product assistant"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "python-dotenv==1.1.1",
+    "langchain==0.3.27",
+    "fastapi>=0.116.1",
+    "streamlit==1.49.1",
+]
+
+authors = [{ name = "Megha Ukkali" }]
+license = { text = "Proprietary" }
+
+[tool.setuptools]
+packages = []
