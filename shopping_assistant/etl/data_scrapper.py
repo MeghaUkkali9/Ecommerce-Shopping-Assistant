@@ -38,7 +38,7 @@ class DataScrapper:
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-blink-features=AutomationControlled")
         
-        driver = uc.Chrome(options=options, use_subprocess=True)
+        driver = uc.Chrome(options=options, use_subprocess=True, version_main=146)
         
         if not product_url.startswith("http"):
             raise ValueError("Invalid product URL. Please provide a valid URL starting with http or https.")        
@@ -80,7 +80,7 @@ class DataScrapper:
         driver.quit()
         return " || ".join(reviews) if reviews else "No reviews found"
     
-    def scrape_flipkart_product(self,  query, max_products=5, num_reviews=2):
+    def scrape_flipkart_products(self,  query, max_products=5, num_reviews=2):
         """
         Scrape product details and reviews from Flipkart based on a search query.
          - Search for the query on Flipkart
@@ -89,7 +89,7 @@ class DataScrapper:
          - Save the data to a CSV file for later use in the data ingestion pipeline
         """
         options = uc.ChromeOptions()
-        driver = uc.Chrome(options=options,use_subprocess=True)
+        driver = uc.Chrome(options=options,use_subprocess=True, version_main=146)
         search_url = f"https://www.flipkart.com/search?q={query.replace(' ', '+')}"
         driver.get(search_url)
         time.sleep(4)
