@@ -163,3 +163,73 @@ TO check Python versions available on machine:
 ```bash
 uv python list
 ```
+
+------------------
+## Setup AstraDB (Vector Database)
+
+This project uses **AstraDB (DataStax / IBM)** as the vector database.
+
+### 1. Create an AstraDB Account
+
+Go to:
+https://astra.datastax.com
+
+---
+
+### 2. Create a Database
+
+Use the following link:
+https://astra.datastax.com/org/75a5d1a0-3d92-4504-93ae-a95a76255745/create-database
+
+---
+
+### 3. Configure Database
+
+While creating the database, use these settings:
+
+* **Database Type**: Serverless (Vector Database)
+* **Database Name**: `ecommerce_shopping_assistant`
+* **Cloud Provider**: AWS
+* **Region**: `us-east-2`
+
+---
+
+### 4. Get Credentials
+
+After the database is created:
+
+1. Go to **Database Dashboard**
+2. Click on **Connect**
+3. Select **Python / API Access**
+4. Copy the following:
+
+* `ASTRA_DB_API_ENDPOINT`
+* `ASTRA_DB_APPLICATION_TOKEN`
+* `ASTRA_DB_KEYSPACE`
+
+---
+
+### 5. Add to `.env`
+
+Create a `.env` file in your project root and add:
+
+```
+ASTRA_DB_API_ENDPOINT=your_endpoint_here
+ASTRA_DB_APPLICATION_TOKEN=your_token_here
+ASTRA_DB_KEYSPACE=your_keyspace_here
+
+OPENAI_API_KEY=your_openai_key
+GROQ_API_KEY=your_groq_key
+```
+
+---
+
+### 6. Verify Setup
+
+Run the application:
+```
+streamlit run scrapper_ui.py
+```
+
+
+
