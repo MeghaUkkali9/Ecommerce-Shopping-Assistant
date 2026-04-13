@@ -158,3 +158,8 @@ uv add fastapi
 or 
 uv add -r requirememts.txt
 ```
+
+TO check Python versions available on machine: 
+```bash
+uv python list
+```
