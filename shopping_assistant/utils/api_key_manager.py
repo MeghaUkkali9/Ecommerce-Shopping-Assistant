@@ -11,12 +11,20 @@ class ApiKeyManager:
             "ASTRA_DB_KEYSPACE": os.getenv("ASTRA_DB_KEYSPACE"),
         }
 
-        # Just log loaded keys (don't print actual values)
-        for key, val in self.api_keys.items():
-            if val:
-                log.info(f"{key} loaded from environment")
-            else:
-                log.warning(f"{key} is missing from environment")
-
     def get(self, key: str):
         return self.api_keys.get(key)
+    
+    def get_openai_api_key(self):
+        return self.api_keys.get("OPENAI_API_KEY")
+    
+    def get_groq_api_key(self):
+        return self.api_keys.get("GROQ_API_KEY")
+    
+    def get_astra_db_api_endpoint(self):
+        return self.api_keys.get("ASTRA_DB_API_ENDPOINT")
+    
+    def get_astra_db_application_token(self):
+        return self.api_keys.get("ASTRA_DB_APPLICATION_TOKEN")
+    
+    def get_astra_db_keyspace(self):
+        return self.api_keys.get("ASTRA_DB_KEYSPACE")
