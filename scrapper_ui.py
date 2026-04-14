@@ -40,7 +40,7 @@ if st.button("Start Scraping"):
         final_data = []
         for query in product_inputs:
             st.write(f"Searching for: {query}")
-            results = flipkart_scraper.scrape_flipkart_products(query, max_products=max_products, num_reviews=review_count)
+            results = flipkart_scraper.scrape_flipkart_products(query, max_products=max_products, review_count=review_count)
             final_data.extend(results)
 
         unique_products = {}
@@ -50,7 +50,7 @@ if st.button("Start Scraping"):
 
         final_data = list(unique_products.values())
         st.session_state["scraped_data"] = final_data  # store in session
-        flipkart_scraper.save_to_csv(final_data, output_path)
+        flipkart_scraper.save_to_csv(final_data, "product_reviews.csv")
         st.success("Data saved to `data/product_reviews.csv`")
         st.download_button("Download CSV", data=open(output_path, "rb"), file_name="product_reviews.csv")
 
