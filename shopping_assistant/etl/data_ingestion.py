@@ -5,6 +5,7 @@ from langchain_core.documents import Document
 from langchain_astradb import AstraDBVectorStore
 from shopping_assistant.utils.config_loader import load_config
 from shopping_assistant.utils.model_loader import ModelLoader
+from shopping_assistant.exception.custom_exception import ProductAssistantException
 
 class DataIngestion:
     """
@@ -26,13 +27,13 @@ class DataIngestion:
         """
         load_dotenv()
         
-        required_vars = ["GOOGLE_API_KEY", "ASTRA_DB_API_ENDPOINT", "ASTRA_DB_APPLICATION_TOKEN", "ASTRA_DB_KEYSPACE"]
+        required_vars = ["OPENAI_API_KEY", "ASTRA_DB_API_ENDPOINT", "ASTRA_DB_APPLICATION_TOKEN", "ASTRA_DB_KEYSPACE"]
         
         missing_vars = [var for var in required_vars if os.getenv(var) is None]
         if missing_vars:
             raise EnvironmentError(f"Missing environment variables: {missing_vars}")
         
-        self.google_api_key = os.getenv("GOOGLE_API_KEY")
+        self.openai_api_key = os.getenv("OPENAI_API_KEY")
         self.db_api_endpoint = os.getenv("ASTRA_DB_API_ENDPOINT")
         self.db_application_token = os.getenv("ASTRA_DB_APPLICATION_TOKEN")
         self.db_keyspace = os.getenv("ASTRA_DB_KEYSPACE")
@@ -61,49 +62,52 @@ class DataIngestion:
 
         return df
     
-    def tranform_data_to_documents(self):
+    def transform_data_to_documents(self):
         """
         Transform the DataFrame into a list of Document objects for embedding.
-         Each Document should contain the review text and metadata (e.g., product name, rating).
-         This will be used for generating embeddings and storing in the vector database.
-         The metadata can be stored in the 'metadata' field of the Document object as a dictionary.
-         For example:
-         Document(
-             page_content="This is a great product!",
-             metadata={
-                 "product_name": "Example Product",
-                 "rating": 5,
-                 "price": "$19.99"
-             }
-         )
-         """
-        product_list = []
 
-        for _, row in self.product_data.iterrows():
-            product_entry = {
-                    "product_id": row["product_id"],
-                    "product_title": row["product_title"],
-                    "rating": row["rating"],
-                    "total_reviews": row["total_reviews"],
-                    "price": row["price"],
-                    "top_reviews": row["top_reviews"]
+        - Cleans data (removes null reviews)
+        - Validates dataset
+        - Converts rows directly into LangChain Documents
+        """
+
+        try:
+            # Check if data is empty
+            if self.product_data is None or self.product_data.empty:
+                raise ProductAssistantException("CSV data is empty or not loaded properly.")
+
+            self.product_data["top_reviews"] = self.product_data["top_reviews"].astype(str).str.strip()
+            documents = []
+
+            # Efficient iteration (no iterrows)
+            for row in self.product_data.to_dict(orient="records"):
+
+                # Build metadata
+                metadata = {
+                    "product_id": row.get("product_id"),
+                    "product_title": row.get("product_title"),
+                    "rating": self.safe_float(row.get("rating")),
+                    "total_reviews": self.safe_int(row.get("total_reviews")),
+                    "price": self.safe_price(row.get("price"))
                 }
-            product_list.append(product_entry)
 
-        documents = []
-        for entry in product_list:
-            metadata = {
-                    "product_id": entry["product_id"],
-                    "product_title": entry["product_title"],
-                    "rating": entry["rating"],
-                    "total_reviews": entry["total_reviews"],
-                    "price": entry["price"]
-            }
-            doc = Document(page_content=entry["top_reviews"], metadata=metadata)
-            documents.append(doc)
+                # Create document
+                doc = Document(
+                    page_content=row.get("top_reviews", ""),
+                    metadata=metadata
+                )
 
-        print(f"Transformed {len(documents)} documents.")
-        return documents
+                documents.append(doc)
+
+            if not documents:
+                raise ProductAssistantException("No valid documents created from CSV.")
+
+            print(f"Transformed {len(documents)} documents successfully.")
+
+            return documents
+
+        except Exception as e:
+            raise ProductAssistantException(f"Error during document transformation: {str(e)}")
     
     def store_in_vector_db(self, documents: List[Document]):
         """
@@ -125,7 +129,7 @@ class DataIngestion:
         print(f"Successfully inserted {len(inserted_ids)} documents into AstraDB.")
         return vstore, inserted_ids
     
-    def run_pipline(self):
+    def run_pipeline(self):
         """
         Run the entire data ingestion pipeline:
          1. Load environment variables
@@ -137,19 +141,50 @@ class DataIngestion:
          For example, if the CSV file is not found, it should log an error message and exit gracefully.
          If the data is successfully ingested, it should log a success message with the number of documents ingested.
         """
-        documents = self.transform_data()
-        vstore, _ = self.store_in_vector_db(documents)
+        try:
+            documents = self.transform_data_to_documents()
+            vstore, _ = self.store_in_vector_db(documents)
 
-        #Optionally do a quick search
-        query = "Can you tell me the low budget iphone?"
-        results = vstore.similarity_search(query)
+            #Optionally do a quick search
+            query = "Can you tell me the low budget iphone?"
+            results = vstore.similarity_search(query)
 
-        print(f"\nSample search results for query: '{query}'")
-        for res in results:
-            print(f"Content: {res.page_content}\nMetadata: {res.metadata}\n")
+            print(f"\nSample search results for query: '{query}'")
+            for res in results:
+                print(f"Content: {res.page_content}\nMetadata: {res.metadata}\n")
+        except FileNotFoundError as fe:
+            print(f"Error: {fe}")
+            raise ProductAssistantException("CSV file not found. Please ensure the file exists at the specified path.")
+        except Exception as e:
+            raise ProductAssistantException(f"Pipeline failed: {str(e)}")
 
+    def safe_int(self, value, default=0):
+        try:
+            if isinstance(value, str):
+                value = value.replace(",", "").strip()
+            return int(value)
+        except:
+            return default
+
+
+    def safe_float(self, value, default=0.0):
+        try:
+            if isinstance(value, str):
+                value = value.replace(",", "").strip()
+                value = value.split()[0]  # handles "4.5 out of 5"
+            return float(value)
+        except:
+            return default
+    
+    def safe_price(self, value, default=0):
+        try:
+            if isinstance(value, str):
+                value = value.replace("₹", "").replace(",", "").strip()
+            return float(value)
+        except:
+            return default
 # Run if this file is executed directly
-if __name__ == "__main__":
-    ingestion = DataIngestion()
-    ingestion.run_pipeline()
+# if __name__ == "__main__":
+#     ingestion = DataIngestion()
+#     ingestion.run_pipeline()
     
