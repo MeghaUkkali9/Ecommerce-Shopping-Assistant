@@ -7,6 +7,8 @@ import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 class DataScrapper:
@@ -14,9 +16,6 @@ class DataScrapper:
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
 
-    # -----------------------------
-    # DRIVER SETUP
-    # -----------------------------
     def _init_driver(self):
         options = uc.ChromeOptions()
         options.add_argument("--no-sandbox")
@@ -30,51 +29,59 @@ class DataScrapper:
 
         return uc.Chrome(options=options, use_subprocess=True)
 
-    # -----------------------------
-    # GET REVIEWS
-    # -----------------------------
-    def get_top_reviews(self, product_url, count=2):
-        driver = self._init_driver()
+    def get_top_reviews(self, driver, product_url, count=2):
+        driver.get(product_url)
+        time.sleep(4)
 
-        if not product_url.startswith("http"):
-            try: driver.quit()
-            except: pass
-            return "No reviews found"
+        # 🔥 gradual scroll (important)
+        for i in range(10):
+            driver.execute_script(f"window.scrollTo(0, {i*800});")
+            time.sleep(1.5)
 
         try:
-            driver.get(product_url)
-            time.sleep(5)  # Wait for the page to load
-            
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//section"))
+            )
+        except:
+            pass
+
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+
+        review_blocks = soup.select("section.css-1v6g5ho")
+
+        reviews = []
+        seen = set()
+
+        if len(review_blocks) > 1:
+            print(f"Found {len(review_blocks)} review blocks, skipping the first one which is likely a summary or ad.")
+            review_blocks = review_blocks[1:]
+
+        print("/n/n/n Found review blocks:", review_blocks)
+        for block in review_blocks:
             try:
-                driver.find_element(By.XPATH, "//button[contains(text(), '✕')]").click()
-                time.sleep(1)
-            except:
-                pass
+                title = block.find("div")
+                para = block.find("p")
 
-            for _ in range(4):
-                ActionChains(driver).send_keys(Keys.END).perform()
-                time.sleep(1.5)
+                title_text = title.get_text(strip=True) if title else ""
+                para_text = para.get_text(strip=True) if para else ""
 
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-            review_blocks = soup.select("div._27M-vq, div.col.EPCmJX, div._6K-7Co")
+                para_text = para_text.replace("...Read More", "").strip()
 
-            seen = set()
-            reviews = []
+                shade_tag = block.select_one("span.css-onmmvj span:last-child")
+                shade = shade_tag.get_text(strip=True) if shade_tag else ""
 
-            for block in review_blocks:
-                text = block.get_text(" ", strip=True)
-                if text and text not in seen:
-                    reviews.append(text)
-                    seen.add(text)
+                full_review = f"[Shade: {shade}] {title_text} - {para_text}"
+                full_review = full_review.replace('"', '').strip()
+
+                if full_review and full_review not in seen:
+                    reviews.append(full_review)
+                    seen.add(full_review)
+
                 if len(reviews) >= count:
                     break
 
-        except Exception as e:
-            print("Review error:", e)
-            reviews = []
-
-        try: driver.quit()
-        except: pass
+            except:
+                continue
 
         return " || ".join(reviews) if reviews else "No reviews found"
 
@@ -84,118 +91,71 @@ class DataScrapper:
     def scrape_flipkart_products(self, query, max_products=1, review_count=2):
         driver = self._init_driver()
 
-        search_url = f"https://www.flipkart.com/search?q={query.replace(' ', '+')}"
-
-        try:
-            driver.get(search_url)
-        except Exception:
-            print("Driver crashed, restarting...")
-            driver = self._init_driver()
-            driver.get(search_url)
-
+        search_url = f"https://www.nykaa.com/search/result/?q={query.replace(' ', '%20')}"
+        driver.get(search_url)
         time.sleep(4)
 
-        try:
-            driver.find_element(By.XPATH, "//button[contains(text(), '✕')]").click()
-        except:
-            pass
-
-        time.sleep(2)
+        soup = BeautifulSoup(driver.page_source, "html.parser")
 
         products = []
 
-        items = driver.find_elements(By.CSS_SELECTOR, "div[data-id]")[:max_products]
-        print("Products found:", len(items))
+        items = soup.select("div.productWrapper")[:max_products]
 
-        for idx, item in enumerate(items):
+        for item in items:
             try:
-                # ---------- TITLE ----------
-                try:
-                    title = item.find_element(By.CSS_SELECTOR, "div.RG5Slk").text.strip()
-                except:
-                    try:
-                        title = item.find_element(By.CSS_SELECTOR, "a[title]").get_attribute("title")
-                    except:
-                        title = "N/A"
+                # TITLE
+                title = item.select_one("h2.css-xrzmfa").get_text(strip=True)
 
-                # ---------- PRICE ----------
-                try:
-                    price = item.find_element(By.CSS_SELECTOR, "div.DeU9vF").text.strip()
-                except:
-                    try:
-                        price = item.find_element(By.XPATH, ".//div[contains(text(),'₹')]").text
-                    except:
-                        price = "N/A"
+                # PRICE
+                price = item.select_one("span.css-111z9ua").get_text(strip=True)
 
-                # ---------- RATING ----------
-                try:
-                    rating = item.find_element(By.CSS_SELECTOR, "div.MKiFS6").text.strip()
-                except:
+                # RATING + REVIEWS
+                rating_div = item.select_one("div[aria-label]")
+
+                if rating_div:
+                    label = rating_div["aria-label"]
+
+                    rating_match = re.search(r"(\d+\.?\d*) out of 5", label)
+                    review_match = re.search(r"(\d+(?:,\d+)*) reviews", label)
+
+                    rating = rating_match.group(1) if rating_match else "N/A"
+                    total_reviews = review_match.group(1) if review_match else "N/A"
+                else:
                     rating = "N/A"
-
-                # ---------- REVIEW COUNT ----------
-                try:
-                    reviews_text = item.find_element(By.CSS_SELECTOR, "span.PvbNMB").text.strip()
-                    match = re.search(r"(\d+[,\d]*)\s+Reviews", reviews_text)
-                    total_reviews = match.group(1) if match else "N/A"
-                except:
                     total_reviews = "N/A"
+                    
+                link_tag = item.select_one("a")
+                href = link_tag["href"] if link_tag else ""
 
-                # ---------- LINK ----------
-                link_el = item.find_element(By.CSS_SELECTOR, "a[href*='/p/']")
-                href = link_el.get_attribute("href")
+                product_link = "https://www.nykaa.com" + href
 
-                product_link = (
-                    href if href.startswith("http")
-                    else "https://www.flipkart.com" + href
-                )
+                match = re.search(r"productId=(\d+)", href)
+                product_id = match.group(1) if match else "N/A"
+                
+                top_reviews = self.get_top_reviews(driver, product_link, count=review_count)
 
-                match = re.findall(r"/p/(itm[0-9A-Za-z]+)", href)
-                product_id = match[0] if match else "N/A"
+                products.append([product_id, title, rating, total_reviews, price, top_reviews])
 
             except Exception as e:
-                print(f"Error processing item {idx}:", e)
+                print("Error:", e)
                 continue
 
-            time.sleep(1)
-
-            top_reviews = self.get_top_reviews(product_link, count=review_count)
-
-            products.append([
-                product_id,
-                title,
-                rating,
-                total_reviews,
-                price,
-                top_reviews
-            ])
-
-        try: driver.quit()
-        except: pass
-
+        driver.quit()
         return products
-
-    # -----------------------------
-    # SAVE CSV
-    # -----------------------------
+    
     def save_to_csv(self, data, filename="product_reviews.csv"):
-        if os.path.isabs(filename) or "/" in filename:
+        """Save the scraped product reviews to a CSV file."""
+        if os.path.isabs(filename):
             path = filename
+        elif os.path.dirname(filename):  # filename includes subfolder like 'data/product_reviews.csv'
+            path = filename
+            os.makedirs(os.path.dirname(path), exist_ok=True)
         else:
+            # plain filename like 'output.csv'
             path = os.path.join(self.output_dir, filename)
-
-        os.makedirs(os.path.dirname(path), exist_ok=True)
 
         with open(path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            writer.writerow([
-                "product_id",
-                "product_title",
-                "rating",
-                "total_reviews",
-                "price",
-                "top_reviews"
-            ])
+            writer.writerow(["product_id", "product_title", "rating", "total_reviews", "price", "top_reviews"])
             writer.writerows(data)
-            
-            
+        
