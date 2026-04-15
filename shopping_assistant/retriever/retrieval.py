@@ -1,5 +1,4 @@
 import os
-from dotenv import load_dotenv
 from shopping_assistant.utils.model_loader import ModelLoader
 from langchain_astradb import AstraDBVectorStore
 
@@ -10,7 +9,6 @@ class Retriever:
         self.retriever = None
         self.vectore_store = None
         
-    
     def __load_env_variables(self):
         required_vars = ["OPENAI_API_KEY", "ASTRA_DB_API_ENDPOINT", "ASTRA_DB_APPLICATION_TOKEN", "ASTRA_DB_KEYSPACE"]
         
@@ -34,7 +32,8 @@ class Retriever:
             )
             
         if self.retriever is None:
-            top_k = self.model_loader.config["retriever"]["top_k"] if "retriever" in self.model_loader.config and "top_k" in self.model_loader.config["retriever"] else 3
+            config = self.model_loader.config
+            top_k = self.model_loader.config["retriever"]["top_k"] if "retriever" in config and "top_k" in config["retriever"] else 3
             self.retriever = self.vectore_store.as_retriever(search_kwargs={"k": top_k})
             return self.retriever
             
