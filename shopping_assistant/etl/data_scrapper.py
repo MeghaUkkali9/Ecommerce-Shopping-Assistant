@@ -66,11 +66,8 @@ class DataScrapper:
                 para_text = para.get_text(strip=True) if para else ""
 
                 para_text = para_text.replace("...Read More", "").strip()
-
-                shade_tag = block.select_one("span.css-onmmvj span:last-child")
-                shade = shade_tag.get_text(strip=True) if shade_tag else ""
-
-                full_review = f"[Shade: {shade}] {title_text} - {para_text}"
+                
+                full_review = f"{title_text} - {para_text}"
                 full_review = full_review.replace('"', '').strip()
 
                 if full_review and full_review not in seen:
