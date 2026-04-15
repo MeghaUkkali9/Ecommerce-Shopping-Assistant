@@ -33,7 +33,6 @@ class DataScrapper:
         driver.get(product_url)
         time.sleep(4)
 
-        # 🔥 gradual scroll (important)
         for i in range(10):
             driver.execute_script(f"window.scrollTo(0, {i*800});")
             time.sleep(1.5)

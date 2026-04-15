@@ -234,16 +234,6 @@ streamlit run scrapper_ui.py
 
 Inserted documents to Astra DB: 
         ![Inserted Data to DB](images/inserted_data_astradb.png)
-        While building this pipeline, I decided not to store embeddings at the product level. 
-
-        Instead, I take each individual review of a product, clean it (remove emojis, fix formatting, etc.), and convert it into an embedding. Each of these embeddings is then stored as a separate record in Astra DB.
-
-        So for one product with multiple reviews, I don’t create a single vector — I create multiple vectors (one per review).
-
-        The reason for this is that reviews often contain different opinions. For example, one review might talk about long-lasting performance, another about color, and another about texture. If I combine all of them into one embedding, the meaning gets mixed and retrieval becomes less accurate.
-
-        By storing one embedding per review, I preserve the exact context of each opinion. This allows me to perform fine-grained semantic search. 
-
+        While building this pipeline, I decided not to store embeddings at the product level.Instead, I take each individual review of a product, clean it (remove emojis, fix formatting, etc.), and convert it into an embedding. Each of these embeddings is then stored as a separate record in Astra DB. So for one product with multiple reviews, I don’t create a single vector — I create multiple vectors (one per review). The reason for this is that reviews often contain different opinions. For example, one review might talk about long-lasting performance, another about color, and another about texture. If I combine all of them into one embedding, the meaning gets mixed and retrieval becomes less accurate. By storing one embedding per review, I preserve the exact context of each opinion. This allows me to perform fine-grained semantic search. 
         For example, if a user searches for “long-lasting lipstick under ₹1000”, the system can directly match reviews that specifically mention long-lasting performance, instead of matching an entire product description.
-
         This design significantly improves the quality of search and makes the system more useful for real-world recommendation use cases.
