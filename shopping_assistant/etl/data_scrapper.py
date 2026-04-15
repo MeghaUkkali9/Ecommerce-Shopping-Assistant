@@ -53,10 +53,8 @@ class DataScrapper:
         seen = set()
 
         if len(review_blocks) > 1:
-            print(f"Found {len(review_blocks)} review blocks, skipping the first one which is likely a summary or ad.")
             review_blocks = review_blocks[1:]
 
-        print("/n/n/n Found review blocks:", review_blocks)
         for block in review_blocks:
             try:
                 title = block.find("div")
@@ -69,7 +67,8 @@ class DataScrapper:
                 
                 full_review = f"{title_text} - {para_text}"
                 full_review = full_review.replace('"', '').strip()
-
+                full_review = self.__clean_review(full_review)
+                
                 if full_review and full_review not in seen:
                     reviews.append(full_review)
                     seen.add(full_review)
@@ -81,6 +80,19 @@ class DataScrapper:
                 continue
 
         return " || ".join(reviews) if reviews else "No reviews found"
+
+
+    def __clean_review(self, text):
+        # remove emojis only (keep punctuation)
+        text = re.sub(
+            r"[\U00010000-\U0010ffff]", 
+            "", 
+            text
+        )
+        # normalize spaces
+        text = re.sub(r"\s+", " ", text)
+
+        return text.strip()
 
     # -----------------------------
     # MAIN SCRAPER
