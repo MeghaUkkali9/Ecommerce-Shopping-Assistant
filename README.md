@@ -226,11 +226,14 @@ GROQ_API_KEY=your_groq_key
 
 ### 6. Verify Setup
 
-Run the application:
+Run the application to scrape and store data in db:
 ```
 streamlit run scrapper_ui.py
 ```
-
+to run fastapi:
+```
+uvicorn shopping_assistant.router.main:app --reload --port 8000
+```
 
 Inserted documents to Astra DB: 
         ![Inserted Data to DB](images/inserted_data_astradb.png)
