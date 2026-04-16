@@ -15,7 +15,8 @@ packages = [
     "beautifulsoup4",
     "html5lib",
     "jinja2",
-    "lxml"
+    "lxml",
+    "langgraph"
 ]
 for pkg in packages:
     try:
