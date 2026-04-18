@@ -4,13 +4,15 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from langchain_core.messages import HumanMessage
-
+from pathlib import Path
 from shopping_assistant.workflow.agentic_rag_workflow import AgenticRAG
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="shopping_assistant/static"), name="static")
-templates = Jinja2Templates(directory="shopping_assistant/templates")
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,12 +22,14 @@ app.add_middleware(
     allow_credentials=True,
 )
 
+from fastapi import Request
+
 @app.get("/", response_class=HTMLResponse)
-async def read_root(request):
+async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/get")
 async def chat(msg: str = Form(...)):
     rag_agent = AgenticRAG()
-    answer = await rag_agent.run(msg)
+    answer = rag_agent.run(msg)
     return answer
