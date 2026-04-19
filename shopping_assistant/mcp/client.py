@@ -13,10 +13,10 @@ async def main():
     })
     
     tools = await client.get_tools()
-    print("Tools:", [t.name for t in tools])
+    print("\n\n\nTools:", [tool.name for tool in tools])
     
-    retriever_tool = next(t for t in tools if t.name == "get_product_info")
-    web_search_tool = next(t for t in tools if t.name == "web_search")
+    retriever_tool = next(tool for tool in tools if tool.name == "get_product_info")
+    web_search_tool = next(tool for tool in tools if tool.name == "web_search")
     
     query = "provide obsessed lipstick"
     retriever_result = await retriever_tool.ainvoke({"query": query})
@@ -29,4 +29,5 @@ async def main():
         print("Web Search Result:\n", web_result)
 
 if __name__ == "__main__":
+    print("\n\n\nStarting MCP Client...")
     asyncio.run(main())

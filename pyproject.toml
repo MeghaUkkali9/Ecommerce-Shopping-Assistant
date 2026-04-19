@@ -18,5 +18,5 @@ dependencies = [
 authors = [{ name = "Megha Ukkali" }]
 license = { text = "Proprietary" }
 
-[tool.setuptools]
-packages = []
+[tool.setuptools.packages.find]
+where = ["."]

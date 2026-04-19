@@ -1,6 +1,8 @@
 import os
 from shopping_assistant.utils.model_loader import ModelLoader
 from langchain_astradb import AstraDBVectorStore
+from langchain.retrievers.document_compressors import LLMChainFilter
+from langchain.retrievers import ContextualCompressionRetriever
 
 class Retriever:
     def __init__(self):
@@ -18,19 +20,38 @@ class Retriever:
         self.astra_db_keyspace = api_key_mgr.get_astra_db_keyspace() 
     
     def load_retriever(self):
-        if self.vectore_store is None:
-            self.vectore_store = AstraDBVectorStore(
-                collection_name=self.model_loader.config["astra_db"]["collection_name"],
-                embedding=self.model_loader.load_embeddings(),
-                token=self.astra_db_application_token,
-                api_endpoint=self.astra_db_api_endpoint,
-                namespace=self.astra_db_keyspace,
-            )
+        """_summary_
+        """
+        if not self.vectore_store:
+            collection_name = self.model_loader.config["astra_db"]["collection_name"]
             
-        if self.retriever is None:
-            config = self.model_loader.config
-            top_k = self.model_loader.config["retriever"]["top_k"] if "retriever" in config and "top_k" in config["retriever"] else 3
-            self.retriever = self.vectore_store.as_retriever(search_kwargs={"k": top_k})
+            self.vectore_store =AstraDBVectorStore(
+                embedding= self.model_loader.load_embeddings(),
+                collection_name=collection_name,
+                api_endpoint=self.astra_db_api_endpoint,
+                token=self.astra_db_application_token,
+                namespace=self.astra_db_keyspace,
+                )
+        if not self.retriever:
+            top_k = self.model_loader.config["retriever"]["top_k"] if "retriever" in self.model_loader.config else 3
+            
+            mmr_retriever=self.vectore_store.as_retriever(
+                search_type="mmr",
+                search_kwargs={"k": top_k,
+                                "fetch_k": 20,
+                                "lambda_mult": 0.7,
+                                "score_threshold": 0.6
+                               })
+            print("Retriever loaded successfully.")
+            
+            llm = self.model_loader.load_llm()
+            
+            compressor=LLMChainFilter.from_llm(llm)
+            
+            self.retriever = ContextualCompressionRetriever(
+                base_compressor=compressor, 
+                base_retriever=mmr_retriever
+            )
             
         return self.retriever
             

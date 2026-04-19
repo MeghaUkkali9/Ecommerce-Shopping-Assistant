@@ -1,5 +1,5 @@
 from mcp.server.fastmcp import FastMCP
-from retriever.retrieval import Retriever  
+from shopping_assistant.retriever.retrieval import Retriever  
 from langchain_community.tools import DuckDuckGoSearchRun
 
 from shopping_assistant.utils.format_docs import format_docs
@@ -10,7 +10,7 @@ retriever = Retriever()
 retriever = retriever.load_retriever()
 
 duckduckgo = DuckDuckGoSearchRun()
-
+   
 @mcp.tool()
 async def get_product_info(query: str) -> str:
     """Retrieve product information for a given query from local retriever."""
@@ -33,5 +33,5 @@ async def web_search(query: str) -> str:
 
 
 if __name__ == "__main__":
-    #mcp.run(transport="stdio")
-    mcp.run(transport="streamable-http")
+    mcp.run(transport="stdio")
+    # mcp.run(transport="streamable-http")
