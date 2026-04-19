@@ -6,7 +6,7 @@ async def main():
         "hybrid_search": {
             "command": "python",
             "args": [
-                    r"/Users/meghaukkali/Documents/ecommerce-shopping-assistant/shopping_assistant/mcp/rag_server.py"
+                    r"/Users/meghaukkali/Documents/ecommerce-shopping-assistant/shopping_assistant/mcp/product_search_server.py"
                     ],
             "transport": "stdio",
         }
