@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from langchain_core.messages import HumanMessage
 from pathlib import Path
-from shopping_assistant.workflow.agentic_rag_workflow import AgenticRAG
+from shopping_assistant.workflow.agentic_rag_with_mcp_tools import AgenticRAG
 
 app = FastAPI()
 
