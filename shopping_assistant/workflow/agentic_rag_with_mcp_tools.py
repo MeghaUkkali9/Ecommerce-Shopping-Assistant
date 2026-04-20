@@ -7,8 +7,8 @@ from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 
 from shopping_assistant.prompt_library.prompt import PROMPT_REGISTRY, PromptType
-from retriever.retrieval import Retriever
-from utils.model_loader import ModelLoader
+from shopping_assistant.retriever.retrieval import Retriever
+from shopping_assistant.utils.model_loader import ModelLoader
 from langchain_mcp_adapters.client import MultiServerMCPClient
 import asyncio
 
@@ -37,10 +37,7 @@ class AgenticRAG:
         # Build workflow
         self.workflow = self.__build_workflow()
         self.app = self.workflow.compile(checkpointer=self.checkpointer)
-
-        # Load MCP tools asynchronously
-        asyncio.run(self.__safe_async_init())
-
+        
     async def async_init(self):
         """Load MCP tools asynchronously."""
         self.mcp_tools = await self.mcp_client.get_tools()
@@ -175,6 +172,8 @@ class AgenticRAG:
 
     async def run(self, query: str, thread_id: str = "default_thread") -> str:
         """Run the workflow for a given query and return the final answer."""
+        await self.__safe_async_init()
+        
         result = await self.app.ainvoke(
             {"messages": [HumanMessage(content=query)]},
             config={"configurable": {"thread_id": thread_id}}

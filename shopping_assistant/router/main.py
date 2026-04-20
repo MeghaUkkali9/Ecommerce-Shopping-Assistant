@@ -30,5 +30,5 @@ async def read_root(request: Request):
 @app.post("/get")
 async def chat(msg: str = Form(...)):
     rag_agent = AgenticRAG()
-    answer = rag_agent.run(msg)
+    answer = await rag_agent.run(msg)
     return answer
