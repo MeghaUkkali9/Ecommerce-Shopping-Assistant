@@ -244,3 +244,40 @@ Inserted documents to Astra DB:
 
 Issues faced:
 GraphRecursionError: Recursion limit of 25 reached: Retriever → Grader → Rewrite → Assistant → Retriever → ...
+
+
+###DOCKER:
+1. Verify Docker Installation
+```docker --version```
+
+2. Manage Docker Images
+
+List all images:
+```docker images```
+
+Remove an image:
+```docker rmi <image_id>```
+3. Build Docker Image
+```docker build -t shopping-assistant .```
+4. Manage Containers
+List all containers (including stopped ones):
+```docker ps -a```
+5. Run the Application in a Container
+
+Run the container:
+
+```docker run -d -p 8000:8000 --name shopping-assistant shopping-assistant```
+
+6. Access the Application
+Once the container is running, open:
+
+```http://localhost:8000/```
+
+The application should run inside the Docker container
+
+Stop container:
+
+```docker stop shopping-assistant```
+
+Remove container:
+```docker rm shopping-assistant```
