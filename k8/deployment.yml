@@ -38,7 +38,7 @@ spec:
         - name: ASTRA_DB_APPLICATION_TOKEN
           valueFrom:
             secretKeyRef:
-              name: shopping-assistantt-secrets
+              name: shopping-assistant-secrets
               key: ASTRA_DB_APPLICATION_TOKEN
         - name: ASTRA_DB_KEYSPACE
           valueFrom:
