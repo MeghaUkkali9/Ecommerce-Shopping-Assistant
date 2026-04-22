@@ -140,7 +140,7 @@ Resources:
     Type: AWS::EKS::Cluster
     Properties:
       Name: !Ref ClusterName
-      Version: "1.29"
+      Version: "1.28"
       RoleArn: !GetAtt EKSClusterRole.Arn
       ResourcesVpcConfig:
         SubnetIds:
@@ -148,6 +148,8 @@ Resources:
           - !Ref PublicSubnet2
         SecurityGroupIds:
           - !Ref EKSSecurityGroup
+        EndpointPublicAccess: true
+        EndpointPrivateAccess: false
 
   ### --- IAM Role for NodeGroup ---
   NodeGroupRole:
