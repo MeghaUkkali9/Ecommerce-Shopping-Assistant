@@ -24,6 +24,6 @@ jobs:
         run: |
           aws cloudformation deploy \
             --stack-name shopping-assistant-cluster \
-            --template-file infra/eks-with-ecr.yml \
+            --template-file infra/eks_with_ecr.yml \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${{ secrets.AWS_REGION }}

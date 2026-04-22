@@ -281,3 +281,22 @@ Stop container:
 
 Remove container:
 ```docker rm shopping-assistant```
+
+## Install AWS CLI which helps to debug the code on local machine using terminal
+```https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html```
+
+installed for all users on local:
+```
+curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+sudo installer -pkg ./AWSCLIV2.pkg -target /
+```
+
+To get version of aws: ```aws --version```
+
+Configure AWS: ```aws configure```
+AWS Access Key ID [****************PY74]: <shopping-assistant-access-key-id>
+AWS Secret Access Key [****************wKi5]: <shopping-assistant-secret-access-key>
+Default region name [ap-south-1]: ap-southeast-2
+Default output format [json]: None
+
+
