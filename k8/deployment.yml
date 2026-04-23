@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: shopping-assistant
-        image: 718203020368.dkr.ecr.ap-southeast-2.amazonaws.com/shopping-assistant:latest
+        image: 718203020368.dkr.ecr.us-west-1.amazonaws.com/shopping-assistant:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
