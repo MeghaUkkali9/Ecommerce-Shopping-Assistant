@@ -135,12 +135,18 @@ jobs:
 
       - name: Patch deployment with new image tag
         env:
-          REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
-          kubectl set image deployment/shopping-assistant shopping-assistant=$REGISTRY/$REPOSITORY:$IMAGE_TAG
+          REPOSITORY=$(echo "$REPOSITORY" | tr -d '\n')
 
+          IMAGE_URI="${REGISTRY}/${REPOSITORY}:${IMAGE_TAG}"
+
+          echo "Using image: $IMAGE_URI"
+
+          kubectl set image deployment/shopping-assistant \
+            shopping-assistant="$IMAGE_URI"
 
       # Verify rollout
       - name: Verify Deployment
