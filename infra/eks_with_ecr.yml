@@ -10,7 +10,7 @@ Parameters:
     Default: t3.medium
   DesiredCapacity:
     Type: Number
-    Default: 2
+    Default: 1
   ECRRepositoryName:
     Type: String
     Default: shopping-assistant
@@ -185,7 +185,7 @@ Resources:
         MinSize: 1
       InstanceTypes:
         - !Ref NodeInstanceType
-        - t3.micro
+        - t3.medium
 
 
 Outputs:
