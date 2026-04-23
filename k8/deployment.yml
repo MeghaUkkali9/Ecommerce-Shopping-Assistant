@@ -5,7 +5,7 @@ metadata:
   labels:
     app: shopping-assistant
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: shopping-assistant
@@ -17,8 +17,16 @@ spec:
       containers:
       - name: shopping-assistant
         image: 718203020368.dkr.ecr.ap-southeast-2.amazonaws.com/shopping-assistant:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
         env:                              
         - name: OPENAI_API_KEY
           valueFrom:
