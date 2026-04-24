@@ -294,9 +294,12 @@ sudo installer -pkg ./AWSCLIV2.pkg -target /
 To get version of aws: ```aws --version```
 
 Configure AWS: ```aws configure```
-AWS Access Key ID [****************PY74]: <shopping-assistant-access-key-id>
-AWS Secret Access Key [****************wKi5]: <shopping-assistant-secret-access-key>
-Default region name [ap-south-1]: ap-southeast-2 us-west-1
-Default output format [json]: None
+AWS Access Key ID: <shopping-assistant-access-key-id>
+AWS Secret Access Key: <shopping-assistant-secret-access-key>
+Default region name: ap-southeast-2 us-west-1
+Default output format: None
 
+
+ # Show Service details:
+``` kubectl get svc shopping-assistant-service -o wide```
 

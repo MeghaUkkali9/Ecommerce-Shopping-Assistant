@@ -162,7 +162,3 @@ jobs:
             done
             exit 1
           fi
-
-      # Show Service details
-      - name: Get Service Info
-        run: kubectl get svc shopping-assistant-service -o wide
