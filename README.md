@@ -299,7 +299,47 @@ AWS Secret Access Key: <shopping-assistant-secret-access-key>
 Default region name: ap-southeast-2 us-west-1
 Default output format: None
 
+## Kubernetes & AWS EKS Commands
 
- # Show Service details:
-``` kubectl get svc shopping-assistant-service -o wide```
+### Connect to EKS Cluster
+
+Use the AWS CLI to configure access to your Kubernetes cluster:
+
+```bash
+aws eks update-kubeconfig --name <cluster_name> --region <aws_region>
+```
+
+This updates local kubeconfig so `kubectl` can communicate with your Amazon EKS cluster.
+
+---
+
+### View Cluster Nodes
+
+Check all nodes(machines) in the cluster:
+
+```bash
+kubectl get nodes
+```
+
+---
+
+### View Pod Logs
+
+Fetch logs from a running pod:
+
+```bash
+kubectl logs <pod_name>
+```
+
+Useful for debugging application issues.
+
+---
+
+### View Service Details
+
+Get details of a Kubernetes service:
+
+```bash
+kubectl get svc <service_name> -o wide
+```
 

@@ -110,11 +110,11 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
 
-      # Debug: Show kubeconfig file
-      - name: Show kubeconfig
-        run: |
-          ls -la ~/.kube || true
-          cat ~/.kube/config || true
+      # Debug: Show kubeconfig file, should not expose certificate. added this for debug
+      # - name: Show kubeconfig
+      #   run: |
+      #     ls -la ~/.kube || true
+      #     cat ~/.kube/config || true
       
       # Create/Update Kubernetes Secret (for API keys)
       - name: Create Kubernetes secret for API keys
